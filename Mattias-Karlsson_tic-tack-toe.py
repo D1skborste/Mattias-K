@@ -83,28 +83,36 @@ def returnwin(board=board):
             return row[0]
     return 0
 
+
 # if-satsen i föregående programmet matar ut "X" eller "O", om 3 lika hittas. Det kontrolleras för att se vilken spelare som vinner.
+
 def victory_for():
-    global wincount, finish, play # Global keyword visar att funktionen kan påverka parametrar utanför sig själv.
+    global wincount, finish # Global keyword visar att funktionen kan påverka parametrar utanför sig själv.
     if returnwin() == "X":
-        response = input("You lost! Do you want to play again? (y/n): ")
+        print("You lost! ")
+        finish = True
     elif returnwin() == "O":
-        response = input("You won! Do you want to play again? (y/n): ")
+        print("You won! ")
         wincount += 1
 # Frågar om spelaren vill fortsätta, samt uppdaterar "while"-villkoren för att hålla pågående spel.
-    finish = True
-    response = "n"
+        finish = True
+
+def after_victory():
+    response = input("Do you want to play again? (y/n): ")
     if response != "y":
-        print(f"Thank you for playing, you won {wincount} times!")
         play = False
-
-
-
+        print(f"Thank you for playing, you won {wincount} times!")
+        return play
+        
+print(play)
 """Game loop"""
 while play:
-    board = [[1,2,3],[4,"O",6],[7,8,9]]
+    board = [[1,"O",3],[4,"O",6],[7,8,9]]
     display_board()
+#    print(play)
+
     while not finish:
+#        print(play)
 
         enter_move()
         victory_for()
@@ -112,12 +120,13 @@ while play:
             break
         draw_move()
         victory_for()
-
+    if finish == True:
+        after_victory()
 
 
 """Att göra: 
 1. Justera gameplay loop. Alla "gameplay mechanics" fungerar separat, men win condition fungerar inte.
-    ska möblera om rad 95-99 (finish=True, if response mm...)
+    ska möblera om (finish/play = True/False, if response mm...)
 2. Diagonal board check krockar med tableflip.
 3. Behöver flytta på promptsen. Ville ha en clean game loop men kanske behöver sätta några checkar
 4. Göra snyggare print/board
