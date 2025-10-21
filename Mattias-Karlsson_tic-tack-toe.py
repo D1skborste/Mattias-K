@@ -117,6 +117,7 @@ while play:
 
 """Att göra: 
 1. Justera gameplay loop. Alla "gameplay mechanics" fungerar separat, men win condition fungerar inte.
+    ska möblera om rad 95-99 (finish=True, if response mm...)
 2. Diagonal board check krockar med tableflip.
 3. Behöver flytta på promptsen. Ville ha en clean game loop men kanske behöver sätta några checkar
 4. Göra snyggare print/board
