@@ -108,7 +108,7 @@ def after_victory():
         play = False
         print(f"Thank you for playing, you won {wincount} times!")
     
-
+#Alla print är för felsökningen
 """Game loop"""
 while play:
     print("1")
