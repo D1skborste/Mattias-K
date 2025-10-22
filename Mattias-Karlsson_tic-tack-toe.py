@@ -5,8 +5,7 @@ from  random import randint
 därefter väljer datorn en ruta baserat på randint.
 Att göra/buggar/notes längst ner"""
 
-
-test
+#test
 
 
 #Sätter initiala värden som att lägga spelplanen och pågående spel/runda
