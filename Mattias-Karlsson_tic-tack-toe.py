@@ -6,17 +6,20 @@ därefter väljer datorn en ruta baserat på randint.
 Att göra/buggar/notes längst ner"""
 
 #Sätter initiala värden som att lägga spelplanen och pågående spel/runda
-board = [[1,2,3],[4,"O",6],[7,8,9]]
+board = [[1,"O",3],[4,"O",6],[7,8,9]]
 play = True
-finish = False
+match = True
 wincount = 0
 
 #En print som gör spelplanen mer läsbar. går att förbättra
-def display_board(board=board):
+def display_board():
     print("==============")
     for i in board:
         print(i, sep="\n")
 
+def new_board():
+    board = [[1,2,3],[4,"O",6],[7,8,9]]
+    return board
 
 """Spelarens move. playermove_is_legal kollar om spelaren har valt en ledig ruta. Då jag har döpt rutorna till
  nummer från 1-9 är det enkelt att räkna om till spelplanens index"""
@@ -87,49 +90,62 @@ def returnwin(board=board):
 # if-satsen i föregående programmet matar ut "X" eller "O", om 3 lika hittas. Det kontrolleras för att se vilken spelare som vinner.
 
 def victory_for():
-    global wincount, finish # Global keyword visar att funktionen kan påverka parametrar utanför sig själv.
+    global wincount, match # Global keyword visar att funktionen kan påverka parametrar utanför sig själv.
     if returnwin() == "X":
         print("You lost! ")
-        finish = True
+        match = False
     elif returnwin() == "O":
         print("You won! ")
         wincount += 1
 # Frågar om spelaren vill fortsätta, samt uppdaterar "while"-villkoren för att hålla pågående spel.
-        finish = True
+        match = False
 
 def after_victory():
+    global play
     response = input("Do you want to play again? (y/n): ")
     if response != "y":
         play = False
         print(f"Thank you for playing, you won {wincount} times!")
-        return play
-        
-print(play)
+    
+
 """Game loop"""
 while play:
-    board = [[1,"O",3],[4,"O",6],[7,8,9]]
+    print("1")
+    match = True
+    board = new_board()
     display_board()
-#    print(play)
+    print("2")
 
-    while not finish:
-#        print(play)
+    while match and play:
+        print("3")
 
         enter_move()
         victory_for()
-        if finish == True:
+        if not match:
             break
+        print("4")
+
         draw_move()
         victory_for()
-    if finish == True:
+        print("5")
+
+    if not match:
         after_victory()
+        print("6")
+
+       # continue
+    
+# Kan modifiera play och match, och checka mellan varje steg i game loop. 
+# Men vill undvika om möjligt (if play or not match: break)
 
 
 """Att göra: 
 1. Justera gameplay loop. Alla "gameplay mechanics" fungerar separat, men win condition fungerar inte.
-    ska möblera om (finish/play = True/False, if response mm...)
+    ska möblera om (match/play = True/False, if response mm...)
 2. Diagonal board check krockar med tableflip.
 3. Behöver flytta på promptsen. Ville ha en clean game loop men kanske behöver sätta några checkar
-4. Göra snyggare print/board
+4. board återställs ej. ska utforska
+5. Göra snyggare print/board
 
 Notes: Det fanns olika metoder för 'table_flip', den jag har i koden var mest lik det min originaltanke.
 Man kan även importera numpy och använda sig av 'transpose', som jag inte har prövat än.
