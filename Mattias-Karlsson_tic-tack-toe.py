@@ -5,6 +5,10 @@ from  random import randint
 därefter väljer datorn en ruta baserat på randint.
 Att göra/buggar/notes längst ner"""
 
+
+test
+
+
 #Sätter initiala värden som att lägga spelplanen och pågående spel/runda
 board = [[1,"O",3],[4,"O",6],[7,8,9]]
 play = True
