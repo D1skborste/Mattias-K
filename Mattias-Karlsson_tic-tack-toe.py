@@ -12,12 +12,13 @@ match = True
 wincount = 0
 
 #En print som gör spelplanen mer läsbar. går att förbättra
-def display_board():
+def display_board(board=board):
     print("==============")
     for i in board:
         print(i, sep="\n")
 
-def new_board():
+def new_board(board=board):
+    #del board [:]
     board = [[1,2,3],[4,"O",6],[7,8,9]]
     return board
 
@@ -119,13 +120,13 @@ while play:
     while match and play:
         print("3")
 
-        enter_move()
+        board = enter_move()
         victory_for()
         if not match:
             break
         print("4")
 
-        draw_move()
+        board = draw_move()
         victory_for()
         print("5")
 
