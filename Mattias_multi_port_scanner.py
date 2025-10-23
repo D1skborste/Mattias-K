@@ -3,6 +3,7 @@
 Network Scanner Project
 Students: Björn, Daniel, Mattias.K, Lukas.S, Vien
 Date: 251021
+A simple, user-friendly, multi-port scanner without threading.
 """
 # Importing modules
 import socket
