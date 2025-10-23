@@ -63,8 +63,8 @@ if __name__ == "__main__":
         target = socket.gethostbyname(domain_name)
         start_port = int(input('starting port: '))
         max_ports = int(input('ending port: '))
-        threads_count = int(input('threads count: '))
     
+    threads_count = int(input('threads count: '))
     threads = []
 
     i = 0
