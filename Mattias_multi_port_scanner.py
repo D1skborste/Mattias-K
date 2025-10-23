@@ -38,7 +38,7 @@ def start_scan(name, start_port, max_port):
 
 if __name__ == "__main__":
     print("=" * 50)
-    print("Port scanner by 'industrispionage'")
+    print("Port scanner by '404-gänget'")
     print("=" * 50)
     # len(sys.argv) checks are optional CLI arguments.
     # I assume an argument format of <domain name or IP>, <start_port>, <end_port>.
