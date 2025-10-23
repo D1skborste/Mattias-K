@@ -15,24 +15,16 @@ open_ports= []
 
 
 
-
-
-
-def start_scan(target, start_port, max_port):
-   #Define the target
-
-    print("Inside func")
-    
+def start_scan(name, start_port, max_port):
+   #Define the target    
     try:
         for port in range(start_port, max_port):
-            if (port - 1) == max_port - 1:
-                print(target, "is finishing its tasks")
             client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            socket.setdefaulttimeout(1)
+            socket.setdefaulttimeout(0.2)
             result = client.connect_ex((target, port))
             if result == 0:
                 open_ports.append(port)
-            print(open_ports)
+            
             client.close()
     except socket.gaierror:
         print("Hostname could not be resolved")
@@ -45,6 +37,9 @@ def start_scan(target, start_port, max_port):
 
 
 if __name__ == "__main__":
+    print("=" * 50)
+    print("Port scanner by 'industrispionage'")
+    print("=" * 50)
     # len(sys.argv) checks are optional CLI arguments.
     # I assume an argument format of <domain name or IP>, <start_port>, <end_port>.
     if len(sys.argv) == 4:
@@ -66,8 +61,22 @@ if __name__ == "__main__":
         start_port = int(input('starting port: '))
         max_port = int(input('ending port: '))
 
+
     
+    print("-" * 50)
+    print("Scanning for open ports in range {}-{} . . .".format(start_port, max_port))
+    print("Time started: " + str(datetime.now()))
+    print("-" * 50)
 
-    threads_count = int(input('threads count: '))
+    start_scan(target, start_port, max_port)
 
-    threads = []
+    print(f"Done scanning on target ip: {target}")
+    print("Time Ended: " + str(datetime.now()))
+    if len(open_ports) == 0:
+        print("no open ports found in range {}-{}".format(start_port, max_port))
+    else:
+        print("open ports found:")
+        print("-" * 50)
+        for port in open_ports:
+            print(port)
+        print("-" * 50)
