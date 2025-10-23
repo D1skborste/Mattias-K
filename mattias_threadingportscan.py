@@ -36,7 +36,30 @@ def start_scan(name, start_port, max_port):
         print("Could not connect to server")
         sys.exit()
 
+banners = []
 
+"""Recieve IP and port from another script"""
+
+def banner(target, port):
+    try:
+        # Initialize a socket and connect to the given IP and port
+        for port in open_ports:
+            client = socket.socket()
+            client.settimeout(5) # Set a 5-second timeout
+            client.connect_ex((target, port))
+    
+            # Receive the banner and decode it to a string
+            banner = client.recv(1024).decode().strip()
+            #print(f"Banner for {target}, Port: {port} -> {banner}")
+            if banner:
+                banners.append(f"Banner for {target}:{port} -> {banner}")
+
+                        
+    except socket.error as e:
+        print(f"Error: Port {port} {e}")
+    finally:
+        # Ensure the socket is closed after the operation
+        client.close()
 
 
 if __name__ == "__main__":
@@ -63,7 +86,8 @@ if __name__ == "__main__":
         target = socket.gethostbyname(domain_name)
         start_port = int(input('starting port: '))
         max_ports = int(input('ending port: '))
-    
+        
+        
     threads_count = int(input('threads count: '))
     threads = []
 
@@ -101,3 +125,8 @@ if __name__ == "__main__":
         for port in open_ports:
             print(port)
         print("-" * 50)
+
+
+    banner(target, port)
+    for i in banners:
+        print(i)
