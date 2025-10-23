@@ -42,23 +42,25 @@ def start_scan(target, start_port, max_port):
         sys.exit()
 
 
-#optional CLI arguments
+
 
 if __name__ == "__main__":
+    # len(sys.argv) checks are optional CLI arguments.
+    # I assume an argument format of <domain name or IP>, <start_port>, <end_port>.
     if len(sys.argv) == 4:
         target = socket.gethostbyname(sys.argv[1])
         start_port = int(sys.argv[2])
         max_port = int(sys.argv[3])
 
-
+    # With only 2 arguments, it will ask the user to input <start_port> and <end_port>.
     elif len(sys.argv) == 2:
-    # translate hostname to IPv4
+    # translate hostname to IPv4. It will also accept just the IP.
         target = socket.gethostbyname(sys.argv[1])
         start_port = int(input('starting port: '))
         max_port = int(input('ending port: '))
 
-        
-    else:
+    # As last resort, it will ask the user to input IP or domain.
+    else: # It will convert <domain name> to IPv4, before asking for <start_port> and <end_port>.
         domain_name = input('Enter target ip or domain: ')
         target = socket.gethostbyname(domain_name)
         start_port = int(input('starting port: '))
