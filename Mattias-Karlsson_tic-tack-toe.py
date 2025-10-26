@@ -7,25 +7,25 @@ Att göra/buggar/notes längst ner"""
 
 
 #Sätter initiala värden som att lägga spelplanen och pågående spel/runda
-board = [[1,"O",3],[4,"O",6],[7,8,9]]
 play = True
 match = True
 wincount = 0
-
+gameboard = []
 #En print som gör spelplanen mer läsbar. går att förbättra
-def display_board(board=board):
+def display_board(board):
     print("==============")
     for i in board:
         print(i, sep="\n")
 
-def new_board(board=board):
+# Spelplanen som är 3 listor i en lista
+def new_board(board):
     #del board [:]
-    board = [[1,2,3],[4,"O",6],[7,8,9]]
-    return board
+    gameboard = [[1,2,3],[4,"X",6],[7,8,9]]
+    return gameboard
 
 """Spelarens move. playermove_is_legal kollar om spelaren har valt en ledig ruta. Då jag har döpt rutorna till
  nummer från 1-9 är det enkelt att räkna om till spelplanens index"""
-def enter_move(board=board):
+def enter_move(board):
     playermove_is_legal = False
     
     # För att undvika att spelet crashar, försöker jag omvandla input till int med "try/except". Är det ej int krävs ny input
@@ -45,7 +45,7 @@ def enter_move(board=board):
             if playermove in x: 
                 x[y]="O"
                 playermove_is_legal = True
-                display_board()
+                display_board(board)
                 print("^ Player's move ^")
                 return board
         print("That move is illegal, try again")
@@ -53,7 +53,7 @@ def enter_move(board=board):
 
 # Datorn är nästan copy-pastad från spelaren, skillnaden är att jag inte ger felmeddelande om datorn väljer en redan tagen ruta.
 # Istället körs randint tills en ledig ruta hittas. Första feedbacken i konsolen är först när pjäs är lagd.
-def draw_move(board=board):
+def draw_move(board):
     playermove_is_legal = False
     
     while not playermove_is_legal:
@@ -64,21 +64,21 @@ def draw_move(board=board):
             if playermove in x:
                 x[y]="X"
                 playermove_is_legal = True
-                display_board()
+                display_board(board)
                 print("^ Computer's move ^")
                 return board
     
 # Med hjälp av len(set) kontrolleras om spelet är vunnet, då set inte kan innehålla dubletter kommer len ge 1, om alla är lika.
 # Med hjälp av range(len), fås siffrorna för att navigera index för att kontrollera diagonala rutorna.
-def checkDiagonals(board=board):
+def checkDiagonals(board):
     if len(set([board[i][i] for i in range(len(board))])) == 1:
         return board[0][0]
     if len(set([board[i][len(board)-i-1] for i in range(len(board))])) == 1:
         return board[0][len(board)-1]
     return 0
 
-def returnwin(board=board):
-#    board = checkDiagonals()
+def returnwin(board):
+    
     flip_table = [[board[x][y] for x in range(len(board))] for y in range(len(board[0]))]
     for row in board:
         if len(set(row)) == 1: # Grund-kontrollen: "genom göra board[i] till set, och kontrolera längden"
@@ -93,10 +93,10 @@ def returnwin(board=board):
 
 def victory_for():
     global wincount, match # Global keyword visar att funktionen kan påverka parametrar utanför sig själv.
-    if returnwin() == "X":
+    if returnwin(board) == "X" or checkDiagonals(board) == "X":
         print("You lost! ")
         match = False
-    elif returnwin() == "O":
+    elif returnwin(board) == "O" or checkDiagonals(board) == "O":
         print("You won! ")
         wincount += 1
 # Frågar om spelaren vill fortsätta, samt uppdaterar "while"-villkoren för att hålla pågående spel.
@@ -109,47 +109,44 @@ def after_victory():
         play = False
         print(f"Thank you for playing, you won {wincount} times!")
     
-#Alla print är för felsökningen
-"""Game loop"""
-while play:
-    print("1")
-    match = True
-    board = new_board()
-    display_board()
-    print("2")
-
-    while match and play:
-        print("3")
-
-        board = enter_move()
-        victory_for()
-        if not match:
-            break
-        print("4")
-
-        board = draw_move()
-        victory_for()
-        print("5")
-
-    if not match:
-        after_victory()
-        print("6")
-
-       # continue
     
-# Kan modifiera play och match, och checka mellan varje steg i game loop. 
-# Men vill undvika om möjligt (if play or not match: break)
+    
+    """Game loop"""
+if __name__ == "__main__":
+    while play: # "while play" är igång även mellan rundorna, det håller koll på vinsterna samt återställer spelplan.
+        match = True
+        board = new_board(gameboard)
+        display_board(board)
+
+ # "while match and play" är den aktiva loopen under rundans gång. Mellan varje lagd pjäs kollas win condition. 
+        while match and play:
+            board = enter_move(board)
+            victory_for()
+            if not match: # Break, bryter loopen om vinst skulle ske i föregående kontroll, 
+                break     # "match = False" kör funktionen "after_victory".
+
+            board = draw_move(board)
+            victory_for()
+
+        if not match:
+            after_victory()
+
+    
+
 
 
 """Att göra: 
-1. Justera gameplay loop. Alla "gameplay mechanics" fungerar separat, men win condition fungerar inte.
-    ska möblera om (match/play = True/False, if response mm...)
-2. Diagonal board check krockar med tableflip.
-3. Behöver flytta på promptsen. Ville ha en clean game loop men kanske behöver sätta några checkar
-4. board återställs ej. ska utforska
 5. Göra snyggare print/board
 
 Notes: Det fanns olika metoder för 'table_flip', den jag har i koden var mest lik det min originaltanke.
 Man kan även importera numpy och använda sig av 'transpose', som jag inte har prövat än.
 Man kan även använda *zip. Det kan vara värt att pröva, men jag tror inte att problemen försvinner
 genom att byta metod."""
+
+
+"""Done goals"""
+#1. Justera gameplay loop. Alla "gameplay mechanics" fungerar separat, men win condition fungerar inte.
+#    ska möblera om (match/play = True/False, if response mm...)
+#2. Diagonal board check krockar med tableflip.
+#3. Behöver flytta på promptsen. Ville ha en clean game loop men kanske behöver sätta några checkar
+#4. board återställs ej. ska utforska
