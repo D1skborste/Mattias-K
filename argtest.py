@@ -52,7 +52,8 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name):
 """IS THIS SPAGHETTI CODE??!?"""
 
 """
-Drawbacks:
+Drawbacks: The ip/ports become un-ordered with the following CLI args: (%PROG.PY) [target1.com] [target2.com] [ip_list.txt] 
+
 Att göra:
 
 Trying to clean up code. Put stuff in functions etc
@@ -100,15 +101,12 @@ timeout = arg_dict["t"]
 
 # Convert the positional arguments to a set, to look for inputs. If no inputs were made, it will print the 'help'.
 if len(set(argvalues)) == 1 and set(argvalues) == {None}:
-    no_args = True
-# Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
+    no_args = True # Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
 
 
-# Will iterate the list of positional arguments,
-for i in argvalues:
+
+for i in argvalues: # Iterates the list of positional arguments,
     if i != None: # Some checks will be performed with each discovered value
-
-    
         try: 
             if len(i) < 6: # If lenght is above a threshold, it can't be a port. 
                 pargs.append(int(i)) # Can i be converted to an int, it will be added to a temporary list of parsed args. 
@@ -172,7 +170,7 @@ if run_default != "69":
 def run_default_scan():
     timeout = arg_dict["t"]
     #if run_default != "69":
-    userinput = "ip_list.txt"
+    userinput = ["ip_list.txt"]
     file_name = save_location() # Calls for the save location. Default file name unless the user calls for a different name.
 
     if not timeout: # Checks if timeout is set, will use a default value if not.
@@ -199,15 +197,17 @@ if no_args == True and flag_p == False and flag_r == False:
         flag_r = True
     # Prompts the user for inputs, if that option is picked.
     elif first_use == 'c' or first_use == 'C':
-        userinput = str(input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET))
+        usertarget = input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET)
         start_port = int(input(BLUE + 'Set default starting port: ' + RESET))
         max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
+        userinput.append(usertarget)
     # If neither option is chosen, the script will end.
     else: 
         sys.exit()
 
 if flag_r: # If the 'default' flag is set, the default function is called to set the default variables.
     userinput, file_name, timeout = run_default_scan()
+
 
 # The final lists used to scan multiple targets.
 start_ports = []
@@ -226,6 +226,17 @@ for t in userinput:
     else:
         targets.append(t)    
 
+"""
+if ".txt" in userinput:
+    read_targets_list(userinput)     
+
+elif "http" in userinput:
+    domain = userinput.split("://")
+    targets.append(domain[1])
+    
+else:
+    targets.append(userinput)    
+"""
 
 # If ports are not set, or lacking from the target file, it will ask the user for input.
 while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL" in start_ports:

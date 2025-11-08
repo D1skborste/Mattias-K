@@ -26,7 +26,6 @@ RESET = Fore.RESET
 Fix readme
 Comments
 Ask for user for ports only when necessary
-Find & Replace "NULL" for 0
 """
 
 
@@ -161,6 +160,7 @@ if __name__ == "__main__":
     timeout = 0.2
     start_ports = []
     max_ports = []
+    max_port = []
     targets = []   
     
     if len(sys.argv) == 5:
@@ -205,16 +205,22 @@ if __name__ == "__main__":
         
     else:
         targets.append(userinput)
-    if len(start_ports) < len(targets) or len(max_ports) < len(targets):
-        start_ports.append(start_port)
-        max_ports.append(max_port)
         
-    elif "NULL" in start_ports:
-        if len(sys.argv) < 2:
-            start_port = int(input('Set default starting port: '))
-            max_port = int(input('Set default ending port: '))
-        start_ports = [x if x != "NULL" else start_port for x in start_ports]
-        max_ports = [x if x != "NULL" else max_port for x in max_ports]
+    while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL" in start_ports:
+        if not max_port: 
+            # Ports will be used as defaults, for when target list doesn't specify.
+            start_port = int(input(BLUE + 'Not all targets have a set port range. Set default starting port: ' + RESET))
+            max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
+        
+        # To no lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
+        # Before then replacing all "NULL" in each list.
+        if "NULL" in start_ports:
+            start_ports = [x if x != "NULL" else start_port for x in start_ports]
+            max_ports = [x if x != "NULL" else max_port for x in max_ports]
+
+        else:
+            start_ports.append(start_port)
+            max_ports.append(max_port)
 
     if inp_timeout:
         timeout = float(inp_timeout)

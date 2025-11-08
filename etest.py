@@ -13,9 +13,20 @@ MAGENTA =Fore.MAGENTA
 BLUE = Fore.BLUE
 RESET = Fore.RESET
 
+"""IS THIS SPAGHETTI CODE??!?"""
 
+"""
+Drawbacks:
+Att göra:
 
-def read_targets_list(ip_list): # ="ip_list.txt"):
+Trying to clean up code. Put stuff in functions etc
+Can i clean up all if/elif/else... for while loops? under __name__ ?
+Can i clean up timeout defaults? It's like 3 different ones
+Another option (add-list or new-list, to manually add ip/port into the targets list)
+
+"""
+
+def read_targets_list(ip_list="ip_list.txt"):
     with open (ip_list) as r:
         targets_list = []
         # Each line in the .txt is an IP, with or without ports
@@ -41,25 +52,106 @@ def read_targets_list(ip_list): # ="ip_list.txt"):
     
 
 
-
 def start_multiscan(targets, start_port, max_port, timeout, file_name):
-    count = 0
-    for ips, start_port, max_port, in zip(targets, start_ports, max_ports):
-        count += 1
-        print(count, ips, start_port, max_port, timeout, file_name)
+    try:
+        with open(file_name, "w") as f:
+            #Counting each target for the progress bar
+            targets_count = 0
+            # Merging the split targets_list
+            for ips, start_port, max_port in zip(targets, start_ports, max_ports):
+                start_port = int(start_port)
+                max_port = int(max_port)      
+                #print(type(targets), type(ips), type(start_port), type(max_port), type(timeout), type(file_name))          
+                total_targets = len(targets)
+                targets_count += 1
+                # Where the open ports are saved, reset for each target.
+                open_ports = []  
+                target = socket.gethostbyname(ips)
+                # Optional text in save file when only scanning one port
+                if start_port == max_port:
+                    f.write(f"{'='*60}\nScanning target IP {target} : Port {start_port} \n")
+                else:
+                    f.write(f"{'='*60}\nScanning target IP {target} : Ports {start_port}-{max_port} \n")
+                # Calculation for progress bar
+                total_ports = max_port - start_port + 1
+                with tqdm(total=total_ports, desc=f"{MAGENTA}Scanning target [{targets_count} of {total_targets}], port [{start_port}] to [{max_port}]", unit="port") as progress_bar:
+
+                # Set range of ports, including the max port
+                    for port in range(start_port, max_port + 1):
+                        #AF_INET = IPv4, SOCK_STREAM = constant, create a TCP socket
+                        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                        # Try to connect port with time out
+                        try:
+                            s.settimeout(timeout)
+                            # Returns to 0 if a port is open
+                            result = s.connect_ex((target, port))
+                            # If a port is open, add the open port to the open_ports list
+                            if result == 0:
+
+                                # Try to identify the port service
+                                try:
+                                    # For HTTP-ports
+                                    if port in (80, 8080):
+                                        # Sends an HTTP HEAD request to the connected server, asking for only HTTP headers without a body
+                                        s.sendall(b"HEAD / HTTP/1.0\r\nHost: %b\r\n\r\n" % target.encode())
+                                    # Read max 1024 bytes from the opened socket
+                                    data = s.recv(1024)
+                                    # Convert the data and do split and strip empy spaces, and get the first part
+                                    banner = data.decode(errors="ignore").splitlines()[0].strip()
+                                    
+                                    # If the banner exists
+                                    if banner:
+                                        # Add open port to the open_ports list
+                                        open_ports.append(f"Port {port} : Banner {banner}")
+                                        f.write(f"Port {port} : Banner {banner}\n")
+                                        #progress_bar.write(f"\nBanner for {target}:{port} -> {banner}")
+                                    else:
+                                        open_ports.append(f"Port {port} : No banner received")
+                                        f.write(f"Port {port} : No banner received\n")
+                                        #progress_bar.write(f"\nNo banner received for {target}:{port}")
+
+                                # Socket timed out error
+                                except socket.timeout:
+                                    open_ports.append(f"Port {port} : No banner (timeout)")
+                                    f.write(f"Port {port} : No banner (timeout)\n")
+                                    #progress_bar.write(f"\nNo banner (timeout) for {target}:{port}")
+                                # Catch other errors
+                                except Exception as e:                                
+                                    open_ports.append(f"Port {port} : Error reading banner {e}")
+                                    f.write(f"Port {port} : Error reading banner {e}\n")
+                                    #progress_bar.write(f"\nError reading banner for {target}:{port}: {e}")
+                        # DNS lookup failed error
+                        except socket.gaierror as e:
+                            f.write(f"{target} Hostname could not be resolved. {e}\n")
+                            return open_ports
+                        # Socket error
+                        except socket.error as e:
+                            f.write(f"{target} Could not connect to server. {e}\n")
+                            return open_ports
+                        # Close socket
+                        finally:
+
+                            s.close()
+                            progress_bar.update(1)
+                    if not open_ports:
+                        f.write(f"No ports are open for {target}\n")
+        
+        # 'Scan complete' message will appear, once all targets are scanned,
+        if targets_count == total_targets:
+            print(f"{GREEN}Scan complete. Results saved in '{file_name}'")    
+    except FileNotFoundError:
+        print(f"{RED}File not found.")
+    # Writing to file errors
+    except IOError as e:
+        print(f"{RED}An I/O error occurred.", e)
+    # Other errors
+    except Exception as e:
+        print(f"{RED}Something went wrong...", e)
+    # Close file
+    f.close()        
         
 
-"""IS THIS SPAGHETTI CODE??!?"""
 
-"""
-Drawbacks:
-Att göra:
-
-Trying to clean up code. Put stuff in functions etc
-Can i clean up all if/elif/else... for while loops? under __name__ ?
-Can i clean up timeout defaults? It's like 3 different ones
-Another option (add-list or new-list, to manually add ip/port into the targets list)
-"""
 
 # Initial function to set accepted arguments. Optional with '-' prefix, and "positional" without prefix.
 def init_argparse():
@@ -86,6 +178,7 @@ flag_p = False
 flag_s = False
 flag_r = False
 
+
 max_port = [] # Set to accept an input, or check for a lack thereof. 
 userinput = [] # Set to accept an input, or check for a lack thereof.
 pargs = [] # Cache for storing, and sorting the arguments
@@ -100,15 +193,12 @@ timeout = arg_dict["t"]
 
 # Convert the positional arguments to a set, to look for inputs. If no inputs were made, it will print the 'help'.
 if len(set(argvalues)) == 1 and set(argvalues) == {None}:
-    no_args = True
-# Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
+    no_args = True # Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
 
 
-# Will iterate the list of positional arguments,
-for i in argvalues:
+
+for i in argvalues: # Iterates the list of positional arguments,
     if i != None: # Some checks will be performed with each discovered value
-
-    
         try: 
             if len(i) < 6: # If lenght is above a threshold, it can't be a port. 
                 pargs.append(int(i)) # Can i be converted to an int, it will be added to a temporary list of parsed args. 
@@ -172,9 +262,8 @@ if run_default != "69":
 def run_default_scan():
     timeout = arg_dict["t"]
     #if run_default != "69":
-    userinput = "ip_list.txt"
+    userinput = ["ip_list.txt"]
     file_name = save_location() # Calls for the save location. Default file name unless the user calls for a different name.
-
     if not timeout: # Checks if timeout is set, will use a default value if not.
         timeout = 0.5
     return userinput, file_name, timeout # Returns 3 variables.
@@ -199,15 +288,17 @@ if no_args == True and flag_p == False and flag_r == False:
         flag_r = True
     # Prompts the user for inputs, if that option is picked.
     elif first_use == 'c' or first_use == 'C':
-        userinput = str(input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET))
+        usertarget = input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET)
         start_port = int(input(BLUE + 'Set default starting port: ' + RESET))
         max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
+        userinput.append(usertarget)
     # If neither option is chosen, the script will end.
     else: 
         sys.exit()
 
 if flag_r: # If the 'default' flag is set, the default function is called to set the default variables.
     userinput, file_name, timeout = run_default_scan()
+
 
 # The final lists used to scan multiple targets.
 start_ports = []
@@ -224,8 +315,9 @@ for t in userinput:
         targets.append(domain[1])
         
     else:
-        targets.append(t)    
-
+        targets.append(t)
+if not targets:
+    read_targets_list()
 
 # If ports are not set, or lacking from the target file, it will ask the user for input.
 while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL" in start_ports:
@@ -254,8 +346,9 @@ if not timeout:
         timeout = 0.5
 timeout = float(timeout)
 
-print("Timeout",type(timeout), timeout)
+
+"""print("Timeout",type(timeout), timeout)
 print('Target', targets)
 print('Start', start_ports, 'Max', max_ports)
-print(file_name)
+print(file_name)"""
 start_multiscan(targets, start_ports, max_ports, timeout, file_name)
