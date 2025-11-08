@@ -15,7 +15,7 @@ RESET = Fore.RESET
 
 
 
-def read_targets_list(ip_list="ip_list.txt"):
+def read_targets_list(ip_list): # ="ip_list.txt"):
     with open (ip_list) as r:
         targets_list = []
         # Each line in the .txt is an IP, with or without ports
@@ -42,7 +42,7 @@ def read_targets_list(ip_list="ip_list.txt"):
 
 
 
-def start_multiscan(targets, start_port, max_port, timeout, file_name="port_results.txt"):
+def start_multiscan(targets, start_port, max_port, timeout, file_name):
     count = 0
     for ips, start_port, max_port, in zip(targets, start_ports, max_ports):
         count += 1
@@ -52,178 +52,210 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name="port_resu
 """IS THIS SPAGHETTI CODE??!?"""
 
 """
-
+Drawbacks:
 Att göra:
 
 Trying to clean up code. Put stuff in functions etc
 Can i clean up all if/elif/else... for while loops? under __name__ ?
-
-Halt program without args, or ask user if they want to continue
+Can i clean up timeout defaults? It's like 3 different ones
+Another option (add-list or new-list, to manually add ip/port into the targets list)
 """
 
+# Initial function to set accepted arguments. Optional with '-' prefix, and "positional" without prefix.
 def init_argparse():
     parser = argparse.ArgumentParser(
-        usage="%(prog)s [target or file] [-h] ",
-        description="'Idiot-proof' port-scanner. Any 0-4 arguments in any order will work. Use [-r] to run with all default values: \
-            input from <ip_list>, to output <port_results.txt>. Default [timeout] is 0.5 sec",
+        usage="%(prog)s [TARGET or FILE] [PORTS] [TIMEOUT] [OPTIONS] ",
+        description="'Idiot-proof' port-scanner. Any 0-4 CLI arguments in any order will work. It will scan a list, IP or domain.\
+            options will override CLI. input from <ip_list>, to output <port_results.txt>. Default [timeout] is 0.5 sec",
        
     )
-    parser.add_argument('first', nargs='?', )
-    parser.add_argument('second', nargs="?", )
-    parser.add_argument('third', nargs="?", )
-    parser.add_argument('fourth', nargs="?", )
+    parser.add_argument('first', nargs='?', help=argparse.SUPPRESS)
+    parser.add_argument('second', nargs="?", help=argparse.SUPPRESS)
+    parser.add_argument('third', nargs="?", help=argparse.SUPPRESS)
+    parser.add_argument('fourth', nargs="?", help=argparse.SUPPRESS)
     parser.add_argument('-p', nargs=2, help="Specify [start_port] and [max_port]")
     parser.add_argument('-t', help="Set a [timeout] for each port (default is 1 sec)" )
     parser.add_argument('-s', help="Specify name for save file <*.txt>", default='port_results.txt' )
-    parser.add_argument('-r', nargs='?', default='69', help="Run the port-scanner from <ip_list.txt> -> save results in <port_results.txt>. With a default [timeout] of 0.5 sec." )
+    parser.add_argument('-r', nargs='?', default='69', help="Run the port-scanner from <ip_list.txt> -> save results in <port_results.txt>. With a default [timeout] of 0.5 sec, unless specified with [-t]" )
     
     return parser
 
-# Flag checks
+# Flag checks. Timeout doesn't have a flag, as it's only one line.
 no_args = False
 flag_p = False
-#flag_t = False
 flag_s = False
 flag_r = False
-#list_2 = [num for num in list_1 if isinstance(num, (int,float))]
-#def parse_pos_args():
-max_port = []
-#start_port = []
-userinput = []
-sargs = []
+
+max_port = [] # Set to accept an input, or check for a lack thereof. 
+userinput = [] # Set to accept an input, or check for a lack thereof.
 pargs = [] # Cache for storing, and sorting the arguments
-parser = init_argparse()
-arg_dict = vars(parser.parse_args())
-#arg_dict = vars(args)
-argvalues = list(arg_dict.values())
-argvalues = argvalues[0:4]
+parser = init_argparse() # Returned parser class to create a 'Namespace' object as a string.
+arg_dict = vars(parser.parse_args()) # Convert this object into a dictionary.
+argvalues = list(arg_dict.values()) # Convert the dictionary values into a list.
+argvalues = argvalues[0:4] # We only need the first 4 arguments, for processing and sorting the input. 
 
 
 timeout = arg_dict["t"]
 
 
-
+# Convert the positional arguments to a set, to look for inputs. If no inputs were made, it will print the 'help'.
 if len(set(argvalues)) == 1 and set(argvalues) == {None}:
-    parser.print_help()
     no_args = True
-# Ask for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
+# Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
 
 
-if no_args == False:
-    for i in argvalues:
-        if i != None:
-            if len(i) >= 6:
-                userinput = i
-        
-        try:
-            int(i)
-            pargs.append(int(i))
+# Will iterate the list of positional arguments,
+for i in argvalues:
+    if i != None: # Some checks will be performed with each discovered value
+
+    
+        try: 
+            if len(i) < 6: # If lenght is above a threshold, it can't be a port. 
+                pargs.append(int(i)) # Can i be converted to an int, it will be added to a temporary list of parsed args. 
+            elif len(i) >= 6: 
+                userinput.append(i) # It's saved for later, to be processed for a list, IP or domain.
+
         except:
-            try:
-                if not timeout:
+            try: # Failed int conversion will check for a float conversion.
+                if not timeout: # If successful and there's no timeout yet set, it will be added to a timeout list.
                     timeout = []
-                    float(i)
-                    timeout.append(i)
-                    timeout = timeout[0]
+                    timeout.append(float(i))
+                    timeout.sort()
+                    timeout = timeout[0] # In the event of several floats, the lowest will be used for timeout
 
-            except:
-                None
+            except: # As a last resort, it will be added to the list of targets. 
+                userinput.append(i) # It also means you can set up to 4 targets from the CLI.
 
 
-if pargs:
-    pargs.sort()
-    if not timeout and len(pargs) != 2:
+if pargs: # If any ints were added to the temp list, they will be sorted
+    pargs.sort() # Timeout is supposed to be the lowest value
+    if not timeout and len(pargs) == 1:
         timeout = pargs[0]
-    if len(pargs) == 2:
+# Different actions depending on how many args in the list
+    elif len(pargs) == 2:
         start_port = pargs[0]
         max_port = pargs[1]
-    elif len(pargs) >= 3:
+        
+    elif len(pargs) == 3:
         if timeout:
             start_port = pargs[0]
         else:
+            timeout = pargs[0]
             start_port = pargs[1]
         max_port = pargs[-1]
+        
 
 
-
-if arg_dict["p"]:
+# Checks for optional flags in the CLI, from the dict version of the args.
+if arg_dict["p"]: # Flag [-p] for ports, it forces 2 'nargs', min and max port
     pargs = arg_dict.get("p")
     pargs.sort()
     start_port = pargs[0]
     max_port = pargs[1]
+    flag_p = True # Flag is set for future checks
 
-if arg_dict["s"]:
+# Function for specific save location. It may be called as a modifier when running the script, to overwrite default location.
+def save_location(): # If the user doesn't type '.txt' after file name, it will be added automatically.
     if ".txt" not in arg_dict["s"]:
-        file_name = arg_dict.get("s")
+        file_name = arg_dict["s"]
         file_name += ".txt"
     else:
-        file_name = arg_dict.get("s")
-        
+        file_name = arg_dict["s"]
+    return file_name
+
+# Shortcut to run default program, as is. As long as the user doesn't type "-r 69" in the CLI. 
 run_default = arg_dict['r']
 if run_default != "69":
+    flag_r = True # Another flag set for future checks
+
+# The function for default script. But optional flags can overwrite some values.
+def run_default_scan():
+    timeout = arg_dict["t"]
+    #if run_default != "69":
     userinput = "ip_list.txt"
-    file_name = "port_results.txt"
-    timeout = 0.5
-        #timeout = float(timeout)
-    #return userinput, start_port, max_port, timeout
+    file_name = save_location() # Calls for the save location. Default file name unless the user calls for a different name.
+
+    if not timeout: # Checks if timeout is set, will use a default value if not.
+        timeout = 0.5
+    return userinput, file_name, timeout # Returns 3 variables.
 
 
 
+"""WHERE TO PUT if __name__ == "__main__": ??"""
 
 
-if __name__ == "__main__":
-    #parser.print_help()
-    
-    #userinput = []
-    start_ports = []
-    max_ports = []
-    #userinput, start_port, max_port, timeout = parse_pos_args()
-    #parse_pos_args()
-    #targets = userinput_parse()
-    targets = []
-    if not userinput:
-        read_targets_list()
-    
-    #print(argvalues[0:4])
-    #if argvalues[0:4]:
+#if __name__ == "__main__":
 
-    elif ".txt" in userinput:
-        read_targets_list(userinput)     
+# Sets a default save location
+file_name = save_location()
 
-    elif "http" in userinput:
-        domain = userinput.split("://")
+# Multiple flag checks to verify the lack of user input. It will then show a "help menu" with the availible arguments
+if no_args == True and flag_p == False and flag_r == False:
+    parser.print_help() # Asks the user to run the default program, or enter custom variables with input prompts.
+    first_use = input(BLUE + "If this is your first time, press 'R' to run with defaults, or 'C' to set prompted rules: " + RESET)
+
+    # Sets the "default" flag, if user affirms.
+    if first_use == 'r' or first_use == 'R' or run_default != "69":
+        flag_r = True
+    # Prompts the user for inputs, if that option is picked.
+    elif first_use == 'c' or first_use == 'C':
+        userinput = str(input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET))
+        start_port = int(input(BLUE + 'Set default starting port: ' + RESET))
+        max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
+    # If neither option is chosen, the script will end.
+    else: 
+        sys.exit()
+
+if flag_r: # If the 'default' flag is set, the default function is called to set the default variables.
+    userinput, file_name, timeout = run_default_scan()
+
+# The final lists used to scan multiple targets.
+start_ports = []
+max_ports = []
+targets = []
+
+# Checks the userinputs to identify a text file, domain or ip.
+for t in userinput:
+    if ".txt" in t:
+        read_targets_list(t)     
+
+    elif "http" in t:
+        domain = t.split("://")
         targets.append(domain[1])
         
     else:
-        targets.append(userinput)    
+        targets.append(t)    
 
 
-
-    while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL" in start_ports:
-        if not max_port: #or not start_port:
-            start_port = int(input(BLUE + 'Set default starting port: '))
-            max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
-                
-        if "NULL" in start_ports:
-            start_ports = [x if x != "NULL" else start_port for x in start_ports]
-            max_ports = [x if x != "NULL" else max_port for x in max_ports]
-
-        else:
-            start_ports.append(start_port)
-            max_ports.append(max_port)
-
-
-
-    if not timeout:
-        inp_timeout = input(f"{BLUE}Set a port timeout {RESET}(or <CR> for 0.5)")
-        if inp_timeout:
-            timeout = float(inp_timeout)
-        else:
-            timeout = 0.5
-    timeout = float(timeout)
+# If ports are not set, or lacking from the target file, it will ask the user for input.
+while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL" in start_ports:
+    if not max_port: 
+        # Ports will be used as defaults, for when target list doesn't specify.
+        start_port = int(input(BLUE + 'Not all targets have a set port range. Set default starting port: ' + RESET))
+        max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
     
-    print("Timeout",type(timeout), timeout)
-    print('Target', targets)
-    print('Start', start_ports, 'Max', max_ports)
-    print(file_name)
-    start_multiscan(targets, start_ports, max_ports, timeout, file_name)
+    # To no lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
+    # Before then replacing all "NULL" in each list.
+    if "NULL" in start_ports:
+        start_ports = [x if x != "NULL" else start_port for x in start_ports]
+        max_ports = [x if x != "NULL" else max_port for x in max_ports]
+
+    else:
+        start_ports.append(start_port)
+        max_ports.append(max_port)
+
+
+# If no timeout are set, the user will be asked to set one, or press enter to use default value.
+if not timeout:
+    inp_timeout = input(f"{BLUE}Set a port timeout {RESET}(or <CR> for 0.5)")
+    if inp_timeout:
+        timeout = float(inp_timeout)
+    else:
+        timeout = 0.5
+timeout = float(timeout)
+
+print("Timeout",type(timeout), timeout)
+print('Target', targets)
+print('Start', start_ports, 'Max', max_ports)
+print(file_name)
+start_multiscan(targets, start_ports, max_ports, timeout, file_name)
