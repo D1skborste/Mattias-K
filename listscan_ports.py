@@ -2,11 +2,13 @@
 """
 Network Scanner Project - Continuation
 By: Mattias.K
+Date: 251021
 
 O.G Students: Björn, Daniel, Mattias.K, Lukas.S, Vien
-Date: 251021
+
 """
 # Importing modules
+import re
 import socket
 import sys
 from tqdm import tqdm
@@ -23,31 +25,62 @@ RESET = Fore.RESET
 """To do:
 Fix readme
 Comments
-Maybe also set custom port range for each ip in txt. 
+Ask for user for ports only when necessary
+Find & Replace "NULL" for 0
 """
 
 
-targets = []
-# Global list to save ports
-open_ports = []
 
-# Set range ports, including the max port
+def read_targets_list(ip_list="ip_list.txt"):
+    with open (ip_list) as r:
+        targets_list = []
+        # Each line in the .txt is an IP, with or without ports
+        for line in r.readlines():
+            # It will go through each line, remove prefix and suffix
+            row = line.removeprefix("http://").removesuffix("\n")
+            # Whatever the ip/port format in the list, it will substitute the characters for a space, before splitting
+            row = re.sub(r'[-/:_,\\]', ' ', row).split(" ")
+            # IP and port range in correct format are appended to target list 
+            targets_list.append(row)
+        r.close()
+
+    # The target list is split in three lists: targets, start_port and max_port
+    for x in targets_list:
+        targets.append(x[0])
+        # If no ports are set in target_list, it will use a default value set by the user
+        try: # Converting str to int
+            start_ports.append(int(x[1]))
+            max_ports.append(int(x[2]))
+        except:
+            start_ports.append("NULL")
+            max_ports.append("NULL")
+        
+        
+
+
+# Set range of ports, including the max port
 def start_multiscan(targets, start_port, max_port, timeout, file_name="port_results.txt"):
     try:
-        with open(file_name, "w") as f:    
+        with open(file_name, "w") as f:
+            #Counting each target for the progress bar
             targets_count = 0
-            for ips in targets:                
+            # Merging the split targets_list
+            for ips, start_port, max_port in zip(targets, start_ports, max_ports):                
                 total_targets = len(targets)
                 targets_count += 1
-                
-                open_ports = []  # Reset for each target
+                # Where the open ports are saved, reset for each target.
+                open_ports = []  
                 target = socket.gethostbyname(ips)
-                f.write(f"{'='*60}\nScanning target IP {target}\n")
+                # Optional text in save file when only scanning one port
+                if start_port == max_port:
+                    f.write(f"{'='*60}\nScanning target IP {target} : Port {start_port} \n")
+                else:
+                    f.write(f"{'='*60}\nScanning target IP {target} : Ports {start_port}-{max_port} \n")
                 # Calculation for progress bar
                 total_ports = max_port - start_port + 1
                 with tqdm(total=total_ports, desc=f"{MAGENTA}Scanning target [{targets_count} of {total_targets}], port [{start_port}] to [{max_port}]", unit="port") as progress_bar:
 
-                # Set range ports, including the max port
+                # Set range of ports, including the max port
                     for port in range(start_port, max_port + 1):
                         #AF_INET = IPv4, SOCK_STREAM = constant, create a TCP socket
                         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -101,11 +134,13 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name="port_resu
                             return open_ports
                         # Close socket
                         finally:
+
                             s.close()
                             progress_bar.update(1)
                     if not open_ports:
                         f.write(f"No ports are open for {target}\n")
         
+        # 'Scan complete' message will appear, once all targets are scanned,
         if targets_count == total_targets:
             print(f"{GREEN}Scan complete. Results saved in '{file_name}'")    
     except FileNotFoundError:
@@ -118,13 +153,16 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name="port_resu
         print(f"{RED}Something went wrong...", e)
     # Close file
     f.close()
-    
+
 
 
 # Run the program
 if __name__ == "__main__":
     timeout = 0.2
-   
+    start_ports = []
+    max_ports = []
+    targets = []   
+    
     if len(sys.argv) == 5:
         userinput = sys.argv[1]
         start_port = int(sys.argv[2])
@@ -145,29 +183,21 @@ if __name__ == "__main__":
 
     elif len(sys.argv) == 2:
         userinput = sys.argv[1]
-        start_port = int(input('starting port: '))
-        max_port = int(input('ending port: '))
+#        start_port = int(input('Set default starting port: '))
+#        max_port = int(input('Set default ending port: '))
         inp_timeout = input("(Optional) Set timout for each port: ")
             
     else:
         userinput = str(input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: '))
-        start_port = int(input('starting port: '))
-        max_port = int(input('ending port: '))
+#        start_port = int(input('Set default starting port: '))
+#        max_port = int(input('Set default ending port: '))
         inp_timeout = input("(Optional) Set timout for each port: ")
 
     if not userinput:
-        with open ("ip_list.txt") as r:
-            for line in r.readlines():
-                row = line.removeprefix("http://").removesuffix("\n")
-                targets.append(row)
-        r.close()     
+        read_targets_list()
 
     elif ".txt" in userinput:
-        with open (userinput) as r:
-            for line in r.readlines():
-                row = line.removeprefix("http://").removesuffix("\n")
-                targets.append(row)
-        r.close()                 
+        read_targets_list(userinput)                 
                 
     elif "http" in userinput:
         domain = userinput.split("://")
@@ -175,9 +205,19 @@ if __name__ == "__main__":
         
     else:
         targets.append(userinput)
+    if len(start_ports) < len(targets) or len(max_ports) < len(targets):
+        start_ports.append(start_port)
+        max_ports.append(max_port)
+        
+    elif "NULL" in start_ports:
+        if len(sys.argv) < 2:
+            start_port = int(input('Set default starting port: '))
+            max_port = int(input('Set default ending port: '))
+        start_ports = [x if x != "NULL" else start_port for x in start_ports]
+        max_ports = [x if x != "NULL" else max_port for x in max_ports]
 
     if inp_timeout:
         timeout = float(inp_timeout)
         
     # Scan the give url with start and end ports
-    start_multiscan(targets, start_port, max_port, timeout)
+    start_multiscan(targets, start_ports, max_ports, timeout)
