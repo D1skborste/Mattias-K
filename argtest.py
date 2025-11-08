@@ -51,13 +51,12 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name="port_resu
 
 """IS THIS SPAGHETTI CODE??!?"""
 
-        
 """
+
 Att göra:
 
 Trying to clean up code. Put stuff in functions etc
 Can i clean up all if/elif/else... for while loops? under __name__ ?
-(Maybe do a check, instead of writing, and rewriting args, like ["t"])
 
 Halt program without args, or ask user if they want to continue
 """
@@ -80,8 +79,12 @@ def init_argparse():
     
     return parser
 
-
+# Flag checks
 no_args = False
+flag_p = False
+#flag_t = False
+flag_s = False
+flag_r = False
 #list_2 = [num for num in list_1 if isinstance(num, (int,float))]
 #def parse_pos_args():
 max_port = []
@@ -98,12 +101,16 @@ argvalues = argvalues[0:4]
 
 timeout = arg_dict["t"]
 
+
+
 if len(set(argvalues)) == 1 and set(argvalues) == {None}:
     parser.print_help()
     no_args = True
+# Ask for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
 
-if not no_args:
-    for i in argvalues[0:4]:
+
+if no_args == False:
+    for i in argvalues:
         if i != None:
             if len(i) >= 6:
                 userinput = i
@@ -113,11 +120,14 @@ if not no_args:
             pargs.append(int(i))
         except:
             try:
-                float(i)
-                timeout.append(float(i))
+                if not timeout:
+                    timeout = []
+                    float(i)
+                    timeout.append(i)
+                    timeout = timeout[0]
+
             except:
                 None
-
 
 
 if pargs:
@@ -127,13 +137,14 @@ if pargs:
     if len(pargs) == 2:
         start_port = pargs[0]
         max_port = pargs[1]
-    elif len(pargs) == 3:
-        start_port = pargs[1]
-        max_port = pargs[2]
+    elif len(pargs) >= 3:
+        if timeout:
+            start_port = pargs[0]
+        else:
+            start_port = pargs[1]
+        max_port = pargs[-1]
 
 
-if arg_dict["t"]:
-    timeout = arg_dict["t"]
 
 if arg_dict["p"]:
     pargs = arg_dict.get("p")
@@ -152,7 +163,7 @@ run_default = arg_dict['r']
 if run_default != "69":
     userinput = "ip_list.txt"
     file_name = "port_results.txt"
-    timeout = 37
+    timeout = 0.5
         #timeout = float(timeout)
     #return userinput, start_port, max_port, timeout
 
@@ -204,7 +215,7 @@ if __name__ == "__main__":
 
 
     if not timeout:
-        inp_timeout = input(f"{BLUE}Set a port timeout {RESET}(or <CR> for 0.2)")
+        inp_timeout = input(f"{BLUE}Set a port timeout {RESET}(or <CR> for 0.5)")
         if inp_timeout:
             timeout = float(inp_timeout)
         else:
