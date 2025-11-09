@@ -172,6 +172,7 @@ def init_argparse():
     
     return parser
 
+
 # Flag checks. Timeout doesn't have a flag, as it's only one line.
 no_args = False
 flag_p = False
@@ -326,7 +327,7 @@ while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL"
         start_port = int(input(BLUE + 'Not all targets have a set port range. Set default starting port: ' + RESET))
         max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
     
-    # To no lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
+    # To nos lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
     # Before then replacing all "NULL" in each list.
     if "NULL" in start_ports:
         start_ports = [x if x != "NULL" else start_port for x in start_ports]

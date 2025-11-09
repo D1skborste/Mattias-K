@@ -15,39 +15,43 @@ RESET = Fore.RESET
 
 """Att göra:
 Sätt färger på console texten
-Sätt under "first_use" 'c', target input, och description att default körs från 'ip_list.txt'
 Another option (add-list or new-list, to manually add ip/port into the targets list)
-Trying to clean up code some more. Put stuff in functions etc
-Add comments
+Trying to clean up code some more. Put stuff in functions etc. Avoid global functions max_port, start_port
+Fix readme 
 """
 
 def read_targets_list(ip_list="ip_list.txt"):
     targets_list = []
     with open(ip_list) as r:
+        # Each line in the .txt is an IP, with or without ports
         for line in r.readlines():
+            # It will go through each line, remove prefix and suffix
             row = line.removeprefix("http://").removesuffix("\n")
+            # Whatever format the ip and ports are entered in the list, it will substitute the characters for a space, before splitting
             row = re.sub(r'[-/:_,\\]', ' ', row).split(" ")
+            # IP and port range in correct format are appended to target list 
             targets_list.append(row)
         r.close()
         
+    # The target list is split in three lists: targets, start_port and max_port
     targets = []
     start_ports = []
     max_ports = []
     
     for x in targets_list:
         targets.append(x[0])
-        try:
+        try: 
             start_ports.append(x[1])
             max_ports.append(x[2])
-        except IndexError:
+        except IndexError: # With no ports set in list, it will set "NULL" for future processing.
             start_ports.append("NULL")
             max_ports.append("NULL")
 
     return targets, start_ports, max_ports
             
-
+# Checks the userinputs to identify a text file, domain or ip.
 def targets_processing(t):
-    targets = []
+    targets = [] # "NULL" is set, to not lose track of which ports correspond to each IP.
     start_ports = ["NULL"]
     max_ports = ["NULL"]
     
@@ -164,42 +168,42 @@ def init_argparse():
     parser = argparse.ArgumentParser(
         usage="%(prog)s [TARGET or FILE] [PORTS] [TIMEOUT] [OPTIONS]",
         description="'Idiot-proof' port-scanner. Any amounts of arguments in any order will work. It will scan a list, IP or domain.\
-            options will override CLI. input from <ip_list>, to output <port_results.txt>. Default [timeout] is 0.5 sec",
+            Options will override CLI. Default input from <ip_list>, to output <port_results.txt>, with default [timeout] of 0.5 sec",
     )
     parser.add_argument('args', nargs='*', help="Enter some file names, ips, domains and numbers for ports. If you want to, or don't, it will then ask you for the missing information")
     parser.add_argument('-p', nargs=2, type=int, help="Specify [start_port] and [max_port]")
     parser.add_argument('-t', type=float, help="Set a [timeout] for each port (default is 0.5 sec)")
     parser.add_argument('-s', default='port_results.txt', help="Specify name for save file <*.txt>")
-    parser.add_argument('-r', nargs='?', const='run', help="Run default scan from <ip_list.txt>")
+    parser.add_argument('-r', nargs='?', const='run', help="Run default scan from <ip_list.txt>. Show results in <port_results.txt>. With a [timeout] of 0.5 sec.")
     return parser
 
 
 def parse_positional_args(args):
     ports = []
-    userinput = []
+    userinput = [] # Set to accept an input, or later check for a lack thereof.
     timeout = []
 
-    for arg in args:
-        try:
-            val = float(arg)
+    for arg in args: # Iterates the list of positional arguments,
+        try: # Some checks will be performed with each discovered value
+            val = float(arg) # Can it be converted to an int, it will be added to a temporary list of parsed args. 
             if val.is_integer() and int(val) < 65536:
                 ports.append(int(val))
-            else:
-                timeout.append(val)
-        except ValueError:
-            userinput.append(arg)
+            else: # Failed int conversion will check for a float conversion.
+                timeout.append(val) # Floats will be added to a timeout list.
+        except ValueError: # It's saved for later, to be processed for a list, IP or domain.
+            userinput.append(arg) # As a last resort, it will be added to the list of targets. 
     
-    if timeout:
-        timeout.sort()
+    if timeout: 
+        timeout.sort() # In the event of several floats, the lowest will be used for timeout
         timeout = timeout[0] # In the event of several floats, the lowest will be used for timeout # In the event of several floats, the lowest will be used for timeout
     
-    timeout = timeout or None
+    timeout = timeout or None # Returns None if no timeout were found, to avoid crashing
     return userinput, ports, timeout
 
 
 
-
-def get_save_location(filename):
+ # Function for specific save location. It may be called as a modifier when running the script, to overwrite default location.
+def get_save_location(filename): # If the user doesn't type '.txt' after file name, it will be added automatically.
     return filename if filename.endswith('.txt') else f"{filename}.txt"
 
 
@@ -216,12 +220,13 @@ def run_default_scan():
 
 
 def main():
+    # The final lists used to scan multiple targets.
     global start_ports, max_ports, targets
     start_ports = []
     max_ports = []
     targets = []
     
-    parser = init_argparse()
+    parser = init_argparse() # Returned parser class to create a 'Namespace' object as a string.
     args = parser.parse_args()
     userinput, ports, timeout = parse_positional_args(args.args)
     start_port, max_port = (None, None)
@@ -243,21 +248,21 @@ def main():
     file_name = get_save_location(args.s) # Calls for the save location. Default file name unless the user calls for a different name.
 
     
-    if args.r:
+    if args.r: # If the 'default' arg is set, the default function is called to set the default variables.
         targets, start_ports, max_ports = read_targets_list()
     
-
+    # If no inputs were made, it will print the 'help'.
     if not userinput and not args.r:
-        parser.print_help()
+        parser.print_help() # Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
         #userinput, file_name, timeout = run_default_scan()
         use_default = run_default_scan()
         if use_default is True:
             targets, start_ports, max_ports = read_targets_list()
         else:
-            usertarget = input(BLUE + 'Enter <IP>, <domain> or file <*.txt>: ' + RESET)
+            userinput = input(BLUE + "Enter <IP>, <domain> or file <*.txt> (<CR> for 'ip_list.txt'): " + RESET)
             start_port = int(input(BLUE + 'Set default starting port: ' + RESET))
             max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
-            userinput.append(usertarget)
+            
                         
     # Checks the userinputs to identify a text file, domain or ip.
     for t in userinput:
@@ -278,7 +283,7 @@ def main():
             max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
         
         
-        # Before then replacing all "NULL" in each list.
+        # replacing all "NULL" in each list.
         if "NULL" in start_ports:
             start_ports = [x if x != "NULL" else start_port for x in start_ports]
             max_ports = [x if x != "NULL" else max_port for x in max_ports]
