@@ -352,3 +352,11 @@ print('Target', targets)
 print('Start', start_ports, 'Max', max_ports)
 print(file_name)"""
 start_multiscan(targets, start_ports, max_ports, timeout, file_name)
+
+
+"""Problems:
+broke sorting, default timeout, default run, custom ports for each ip (and with it, set fallback ports)
+Doesn't process the userinputs
+
+heje.com 5 3 2 4 -t 3 --- will output ports 3 5, timeout 3...
+fix so that port 2 is first if -t is used"""

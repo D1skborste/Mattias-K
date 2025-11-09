@@ -15,7 +15,7 @@ RESET = Fore.RESET
 
 
 
-def read_targets_list(ip_list): # ="ip_list.txt"):
+def read_targets_list(ip_list):
     with open (ip_list) as r:
         targets_list = []
         # Each line in the .txt is an IP, with or without ports
@@ -38,8 +38,30 @@ def read_targets_list(ip_list): # ="ip_list.txt"):
         except:
             start_ports.append("NULL")    
             max_ports.append("NULL")
-    
+""" 
+def read_targets_list(ip_list="ip_list.txt"):
+    targets_list = []
+    with open(ip_list) as r:
+        for line in r.readlines():
+            row = line.removeprefix("http://").removesuffix("\n")
+            row = re.sub(r'[-/:_,\\]', ' ', row).split(" ")
+            targets_list.append(row)
+        r.close()
+    print("HELLO", targets_list)
+    targets = []
+    start_ports = []
+    max_ports = []
 
+    for x in targets_list:
+        targets.append(x[0])
+        try:
+            start_ports.append(x[1])
+            max_ports.append(x[2])
+        except IndexError:
+            start_ports.append("NULL")
+            max_ports.append("NULL")
+        
+    return targets, start_ports, max_ports"""
 
 
 def start_multiscan(targets, start_port, max_port, timeout, file_name):
@@ -245,7 +267,7 @@ while len(start_ports) < len(targets) or len(max_ports) < len(targets) or "NULL"
         start_port = int(input(BLUE + 'Not all targets have a set port range. Set default starting port: ' + RESET))
         max_port = int(input(BLUE + 'Set default ending port: ' + RESET))
     
-    # To no lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
+    # To not lose corresponding port to ip from target list, it will set the string "NULL" in it's place.
     # Before then replacing all "NULL" in each list.
     if "NULL" in start_ports:
         start_ports = [x if x != "NULL" else start_port for x in start_ports]
