@@ -16,6 +16,7 @@ RESET = Fore.RESET
 """Att göra:
 Sätt färger på console texten
 Another option (add-list or new-list, to manually add ip/port into the targets list)
+(e.g. [target-1] [ports t1] - [target-2] [ports t2] - [target-3] [ports t3])
 Trying to clean up code some more. Put stuff in functions etc. Avoid global functions max_port, start_port
 Fix readme 
 """
@@ -72,8 +73,7 @@ def start_multiscan(targets, start_port, max_port, timeout, file_name):
             # Merging the split targets_list
             for ips, start_port, max_port in zip(targets, start_ports, max_ports):
                 start_port = int(start_port)
-                max_port = int(max_port)      
-                #print(type(targets), type(ips), type(start_port), type(max_port), type(timeout), type(file_name))          
+                max_port = int(max_port)
                 total_targets = len(targets)
                 targets_count += 1
                 # Where the open ports are saved, reset for each target.
