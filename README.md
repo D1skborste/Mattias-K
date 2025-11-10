@@ -1,6 +1,15 @@
 # Network Scanner
 
 ## Group Members
+- Mattias.K
+
+## Description
+Individual continuation of 'one of the most advanced and secure portscanners in the whole class'. 
+The main goal was to make it able to accept a list of ips. I Also wanted to improve useability, to make it close to idiot-proof. A coma patient with amnesia should be able to use it, and easily grasp the extra functions.
+It's also a timesaver to launch the program, with shortcuts to run it with default, predetermined settings and only ask for input when necessary.
+
+===========================================================================
+## O.G. Group Members and Description
 - Björn
 - Daniel
 - Mattias.K
@@ -11,6 +20,10 @@
 In October 2025, we decided to make one of the most advanced and secure portscanners in the whole class. We sat many hours programming under very dramatic circumstances, personal struggles and bad weather. Finally, when we thought we couldn’t be done before the first week, we managed to finish our task.
 
 We can now proudly present to the world our port scanner.
+
+===========================================================================
+
+
 
 ## Installation
 ```bash
@@ -39,9 +52,15 @@ python multi_port_scanner.py
 - [x] Beutiful colorama lines
 - [x] User friendly CLI arguments and installation package through requirements.txt
 - [x] User friendly URL inputs
+- [x] Accepts a list, or several list of ips
+- [x] A help menu appears if program launches without arguments
+- [x] Automatically parses, and sorts the arguments, to identify target, ports, and timeout
+- [x] Timesaving shortcuts to launch with default settings 
 
 ## Testing
-Tested through scanme.nmap.org sites ports(1-100). Testing was succesful!
+45.33.32.156 - scanme.nmap.org
+44.228.249.3 - testphp.vulnweb.com
+127.0.0.1 - opened port on local machine
 
 ## Known Limitations
 No threading function(yet)
