@@ -7,6 +7,7 @@
 Individual continuation of 'one of the most advanced and secure portscanners in the whole class'. 
 The main goal was to make it able to accept a list of ips. I Also wanted to improve useability, to make it close to idiot-proof. A coma patient with amnesia should be able to use it, and easily grasp the extra functions.
 It's also a timesaver to launch the program, with shortcuts to run it with default, predetermined settings and only ask for input when necessary.
+
 ================================================================================================================
 ## O.G. Group Members and Description
 - Björn
@@ -19,6 +20,7 @@ It's also a timesaver to launch the program, with shortcuts to run it with defau
 In October 2025, we decided to make one of the most advanced and secure portscanners in the whole class. We sat many hours programming under very dramatic circumstances, personal struggles and bad weather. Finally, when we thought we couldn’t be done before the first week, we managed to finish our task.
 
 We can now proudly present to the world our port scanner.
+
 ================================================================================================================
 
 
