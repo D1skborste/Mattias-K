@@ -18,6 +18,8 @@ Sätt färger på console texten
 Another option (add-list or new-list, to manually add ip/port into the targets list)
 (e.g. [target-1] [ports t1] - [target-2] [ports t2] - [target-3] [ports t3])
 Trying to clean up code some more. Put stuff in functions etc. Avoid global functions max_port, start_port
+(Try to assign the relevant functions to a class, maybe)
+Write an algorithm for future threading
 Fix readme 
 """
 
