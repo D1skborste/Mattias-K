@@ -17,8 +17,7 @@ RESET = Fore.RESET
 Sätt färger på console texten
 Another option (add-list or new-list, to manually add ip/port into the targets list)
 (e.g. [target-1] [ports t1] - [target-2] [ports t2] - [target-3] [ports t3])
-Trying to clean up code some more. Put stuff in functions etc. Avoid global functions max_port, start_port
-(Try to assign the relevant functions to a class, maybe)
+Trying to clean up code some more. Put stuff in functions etc. 
 Write an algorithm for future threading
 Fix readme 
 """
@@ -67,7 +66,7 @@ def targets_processing(t):
 
 
 
-def start_multiscan(targets, start_port, max_port, timeout, file_name):
+def start_multiscan(targets, start_ports, max_ports, timeout, file_name):
     try:
         with open(file_name, "w") as f:
             #Counting each target for the progress bar
@@ -223,7 +222,6 @@ def run_default_scan():
 
 def main():
     # The final lists used to scan multiple targets.
-    global start_ports, max_ports, targets
     start_ports = []
     max_ports = []
     targets = []

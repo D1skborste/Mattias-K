@@ -1,3 +1,6 @@
 ============================================================
-Scanning target IP 44.228.249.3 : Port 80 
-Port 80 : Error reading banner list index out of range
+Scanning target IP 45.33.32.156 : Ports 20-25 
+Port 22 : Banner SSH-2.0-OpenSSH_6.6.1p1 Ubuntu-2ubuntu2.13
+============================================================
+Scanning target IP 127.0.0.1 : Ports 20-25 
+No ports are open for 127.0.0.1
