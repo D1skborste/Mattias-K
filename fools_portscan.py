@@ -117,22 +117,18 @@ def start_multiscan(targets, start_ports, max_ports, timeout, file_name):
                                         # Add open port to the open_ports list
                                         open_ports.append(f"Port {port} : Banner {banner}")
                                         f.write(f"Port {port} : Banner {banner}\n")
-                                        #progress_bar.write(f"\nBanner for {target}:{port} -> {banner}")
                                     else:
                                         open_ports.append(f"Port {port} : No banner received")
                                         f.write(f"Port {port} : No banner received\n")
-                                        #progress_bar.write(f"\nNo banner received for {target}:{port}")
 
                                 # Socket timed out error
                                 except socket.timeout:
                                     open_ports.append(f"Port {port} : No banner (timeout)")
                                     f.write(f"Port {port} : No banner (timeout)\n")
-                                    #progress_bar.write(f"\nNo banner (timeout) for {target}:{port}")
                                 # Catch other errors
                                 except Exception as e:                                
                                     open_ports.append(f"Port {port} : Error reading banner {e}")
                                     f.write(f"Port {port} : Error reading banner {e}\n")
-                                    #progress_bar.write(f"\nError reading banner for {target}:{port}: {e}")
                         # DNS lookup failed error
                         except socket.gaierror as e:
                             f.write(f"{target} Hostname could not be resolved. {e}\n")
@@ -254,7 +250,6 @@ def main():
     # If no inputs were made, it will print the 'help'.
     if not userinput and not args.r:
         parser.print_help() # Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
-        #userinput, file_name, timeout = run_default_scan()
         use_default = run_default_scan()
         if use_default is True:
             targets, start_ports, max_ports = read_targets_list()
