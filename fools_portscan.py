@@ -248,7 +248,7 @@ def main():
         targets, start_ports, max_ports = read_targets_list()
     
     # If no inputs were made, it will print the 'help'.
-    if not userinput and not args.r:
+    if not userinput and not args.r and not ports:
         parser.print_help() # Asks for userinput: "RUN DEFAULT" OR "CUSTOM SEARCH"
         use_default = run_default_scan()
         if use_default is True:
